@@ -1,0 +1,7 @@
+metadata_directory: /Users/kale/Desktop/mhs/test_metadata_json
+
+solr_url: http://localhost:8983/solr
+solr_collection: mhs_photos
+
+batch_size: 50   # documents per POST request
+workers: 4       # parallel upload threads

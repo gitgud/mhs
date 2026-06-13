@@ -1,0 +1,12 @@
+test_data/
+original_test_files/*.tiff
+!original_test_files/6P-Political-1001.tiff
+!original_test_files/6P-Political-1002.tiff
+!original_test_files/6P-Political-1004.tiff
+!original_test_files/6P-Political-1005.tiff
+!original_test_files/6P-Political-1006.tiff
+!original_test_files/6P-Political-1007.tiff
+!original_test_files/6P-Political-1008.tiff
+!original_test_files/6P-Political-1009.tiff
+!original_test_files/6P-Political-1010.tiff
+!original_test_files/6P-Political-1011.tiff

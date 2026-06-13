@@ -1,0 +1,74 @@
+---- ExifTool ----
+ExifTool Version Number         : 13.57
+Warning                         : Invalid EXIF text encoding for UserComment
+---- System ----
+File Name                       : MHS01289.tif
+Directory                       : /Users/kale/Desktop/mhs/scripts
+File Size                       : 23 MB
+File Modification Date/Time     : 2026:06:06 11:42:43-04:00
+File Access Date/Time           : 2026:06:06 11:42:43-04:00
+File Inode Change Date/Time     : 2026:06:06 11:42:43-04:00
+File Permissions                : -rw-r--r--
+---- File ----
+File Type                       : TIFF
+File Type Extension             : tif
+MIME Type                       : image/tiff
+Exif Byte Order                 : Little-endian (Intel, II)
+---- IFD0 ----
+Subfile Type                    : Full-resolution image
+Image Width                     : 5504
+Image Height                    : 4172
+Bits Per Sample                 : 8
+Compression                     : Uncompressed
+Photometric Interpretation      : BlackIsZero
+Strip Offsets                   : 8698
+Samples Per Pixel               : 1
+Rows Per Strip                  : 4172
+Strip Byte Counts               : 22962688
+X Resolution                    : 600
+Y Resolution                    : 600
+Resolution Unit                 : inches
+Modify Date                     : 2026:05:23 12:43:53
+XP Comment                      : School production of "Cinderella" performed at the Princess Theatre. 1921. Milton, Ontario.
+---- XMP-x ----
+XMP Toolkit                     : XMP Core 4.4.0-Exiv2
+---- XMP-dc ----
+Description                     : School production of "Cinderella" performed at the Princess Theatre. 1921. Milton, Ontario.
+---- XMP-iptcCore ----
+Keywords                        : Cinderella
+---- IPTC2 ----
+Coded Character Set             : UTF8
+Caption-Abstract                : School production of "Cinderella" performed at the Princess Theatre. 1921. Milton, Ontario.
+Keywords                        : Cinderella
+Urgency                         : 0 (reserved)
+---- Photoshop ----
+X Resolution                    : 600
+Displayed Units X               : inches
+Y Resolution                    : 600
+Displayed Units Y               : inches
+Global Angle                    : 120
+Global Altitude                 : 30
+Print Flags                     : Print flags
+Copyright Flag                  : False
+Print Flags Info                : ..
+BW Halftoning Info              : 5.-..
+BW Transfer Func                : ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ.è
+Grid Guides Info                : ..@.@
+URL List                        : 
+Slices Group Name               : Untitled-1
+Num Slices                      : 1
+ICC Untagged                    : 1
+IDs Base Value                  : 1
+Photoshop Thumbnail             : (Binary data 4605 bytes, use -b option to extract)
+Has Real Merged Data            : Yes
+Writer Name                     : Adobe Photoshop Elements
+Reader Name                     : Adobe Photoshop Elements 1.0.1
+---- ExifIFD ----
+Exif Version                    : 0221
+Components Configuration        : Y, Cb, Cr, -
+User Comment                    : School production of "Cinderella" performed at the Princess Theatre. 1921. Milton, Ontario.
+Flashpix Version                : 0100
+Color Space                     : sRGB
+---- Composite ----
+Image Size                      : 5504x4172
+Megapixels                      : 23.0

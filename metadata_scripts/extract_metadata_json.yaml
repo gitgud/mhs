@@ -1,0 +1,3 @@
+input_directory: /Users/kale/Desktop/mhs/original_test_files
+output_directory: /Users/kale/Desktop/mhs/test_metadata_json
+workers: 4  # parallel exiftool processes; tune down if disk thrashes
