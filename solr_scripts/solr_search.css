@@ -1,0 +1,163 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f4f4f5;
+    color: #1a1a1a;
+    min-height: 100vh;
+}
+
+header {
+    background: #1d3557;
+    color: white;
+    padding: 1.25rem 2rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.search-bar {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-bar input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.search-bar input[type="text"]:focus {
+    border-color: #1d3557;
+}
+
+.limit-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.limit-group input[type="number"] {
+    width: 70px;
+    padding: 0.55rem 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+    outline: none;
+}
+
+.limit-group input[type="number"]:focus {
+    border-color: #1d3557;
+}
+
+button#searchBtn {
+    padding: 0.55rem 1.25rem;
+    background: #1d3557;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+button#searchBtn:hover {
+    background: #2a4a7f;
+}
+
+button#searchBtn:active {
+    background: #162840;
+}
+
+.status {
+    padding: 0.6rem 2rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    min-height: 2rem;
+}
+
+.status.error {
+    color: #dc2626;
+}
+
+#results {
+    padding: 0 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #1d3557;
+}
+
+.card .info {
+    display: contents;
+}
+
+.card .headline {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1d3557;
+}
+
+.card .filename {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.card .field {
+    font-size: 0.85rem;
+    color: #374151;
+}
+
+.card .field span {
+    color: #94a3b8;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 0.3rem;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #94a3b8;
+    padding: 3rem;
+    font-size: 1rem;
+}
