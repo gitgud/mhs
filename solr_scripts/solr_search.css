@@ -45,6 +45,16 @@ header {
     border-color: #1d3557;
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #475569;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
 .limit-group {
     display: flex;
     align-items: center;
