@@ -1,8 +1,0 @@
-127.0.0.1 - - [17/Jun/2026:20:52:19 +0000] "GET /solr/admin/info/system?wt=javabin HTTP/2.0" 200 2864
-127.0.0.1 - - [17/Jun/2026:20:52:20 +0000] "GET /solr/admin/collections?action=CLUSTERSTATUS&wt=javabin HTTP/2.0" 200 789
-127.0.0.1 - - [17/Jun/2026:21:00:43 +0000] "GET /solr/mhs_photos/select?q=ndp&wt=json&rows=10&defType=edismax&qf=subject+keywords+headline+description&fl=id%2Cfile_name%2Cdirectory%2Csubject%2Ckeywords%2Cheadline%2Cdescription HTTP/1.1" 200 581
-127.0.0.1 - - [17/Jun/2026:21:07:17 +0000] "GET /solr/mhs_photos/select?q=ndp&wt=json&rows=10&defType=edismax&qf=subject+keywords+headline+description&fl=id%2Cfile_name%2Cdirectory%2Csubject%2Ckeywords%2Cheadline%2Cdescription HTTP/1.1" 200 580
-127.0.0.1 - - [17/Jun/2026:21:13:00 +0000] "POST /solr/mhs_photos/update?commit=false HTTP/1.1" 200 72
-127.0.0.1 - - [17/Jun/2026:21:13:00 +0000] "POST /solr/mhs_photos/update HTTP/1.1" 200 60
-127.0.0.1 - - [17/Jun/2026:21:22:58 +0000] "GET /solr/mhs_photos/select?q=ndp&wt=json&rows=10&defType=edismax&qf=subject+keywords+headline+description&fl=id%2Cfile_name%2Cdirectory%2Csubject%2Ckeywords%2Cheadline%2Cdescription HTTP/1.1" 200 581
-127.0.0.1 - - [17/Jun/2026:21:30:58 +0000] "GET /solr/mhs_photos/select?q=ndp&wt=json&rows=10&defType=edismax&qf=subject+keywords+headline+description&fl=id%2Cfile_name%2Cdirectory%2Csubject%2Ckeywords%2Cheadline%2Cdescription HTTP/1.1" 200 581
