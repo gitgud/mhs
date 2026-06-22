@@ -1,4 +1,9 @@
 test_data/
 
+.DS_Store
+
 # Solr runtime logs, PID files, and snapshots
-/solr-10.0.0/server/logs/
+solr-10.0.0/bin/
+solr-10.0.0/server/
+
+

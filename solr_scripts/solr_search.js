@@ -80,7 +80,7 @@ function esc(str) {
     .replace(/"/g, "&quot;");
 }
 
-document.getElementById("searchBtn").addEventListener("click", doSearch);
-document.getElementById("query").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") doSearch();
+document.getElementById("search-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  doSearch();
 });

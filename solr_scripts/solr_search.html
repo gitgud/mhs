@@ -13,23 +13,31 @@
     </header>
 
     <main>
-      <div class="search-bar">
+      <form id="search-form" class="search-bar" method="get">
         <input
           type="text"
           id="query"
+          name="query"
           placeholder="Search subjects, keywords, headlines, artists…"
           aria-label="Search photo metadata"
         />
         <div class="limit-group">
           <label for="limit">Limit</label>
-          <input type="number" id="limit" value="10" min="1" max="500" />
+          <input
+            type="number"
+            id="limit"
+            name="limit"
+            value="10"
+            min="1"
+            max="500"
+          />
         </div>
         <label class="checkbox-label">
-          <input type="checkbox" id="publishedOnly" />
+          <input type="checkbox" id="publishedOnly" name="isPublished" />
           Published
         </label>
-        <button id="searchBtn">Search</button>
-      </div>
+        <button class="search-btn" type="submit">Search</button>
+      </form>
 
       <div class="status" id="status"></div>
 

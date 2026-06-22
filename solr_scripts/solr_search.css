@@ -78,7 +78,7 @@ header {
     border-color: #1d3557;
 }
 
-button#searchBtn {
+.search-btn {
     padding: 0.55rem 1.25rem;
     background: #1d3557;
     color: white;
@@ -90,11 +90,11 @@ button#searchBtn {
     white-space: nowrap;
 }
 
-button#searchBtn:hover {
+.search-btn:hover {
     background: #2a4a7f;
 }
 
-button#searchBtn:active {
+.search-btn:active {
     background: #162840;
 }
 
