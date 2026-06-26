@@ -1,7 +1,10 @@
 const SOLR_URL = "http://localhost:8983/solr/mhs_photos/select";
 
+const queryInput = document.getElementById("query");
+const clearButton = document.getElementById("clear-button");
+
 async function doSearch() {
-  const raw = document.getElementById("query").value.trim();
+  const raw = queryInput.value.trim();
   const publishedOnly = document.getElementById("publishedOnly").checked;
   const q = publishedOnly ? `${raw} +published`.trim() : raw;
   const rows = parseInt(document.getElementById("limit").value, 10) || 10;
@@ -80,7 +83,21 @@ function esc(str) {
     .replace(/"/g, "&quot;");
 }
 
+function updateClearButton() {
+  clearButton.hidden = queryInput.value.length === 0;
+}
+
 document.getElementById("search-form").addEventListener("submit", (e) => {
   e.preventDefault();
   doSearch();
 });
+
+queryInput.addEventListener("input", updateClearButton);
+
+clearButton.addEventListener("click", () => {
+  queryInput.value = "";
+  updateClearButton();
+  queryInput.focus();
+});
+
+updateClearButton();
