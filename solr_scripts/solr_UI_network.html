@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MHS Photo Search</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1d3557;
+      color: white;
+      padding: 1.25rem 2rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .config-bar {
+      background: #eef2f7;
+      border-bottom: 1px solid #c7d3e0;
+      padding: 0.6rem 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      color: #475569;
+    }
+
+    .config-bar label { white-space: nowrap; font-weight: 500; }
+
+    .config-bar input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.35rem 0.6rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      font-family: monospace;
+      outline: none;
+      background: white;
+    }
+
+    .config-bar input[type="text"]:focus { border-color: #1d3557; }
+
+    .config-hint {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      padding: 0.3rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    .search-bar {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 2rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-bar input[type="text"]:focus { border-color: #1d3557; }
+
+    .limit-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .limit-group input[type="number"] {
+      width: 70px;
+      padding: 0.55rem 0.5rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .limit-group input[type="number"]:focus { border-color: #1d3557; }
+
+    button#searchBtn {
+      padding: 0.55rem 1.25rem;
+      background: #1d3557;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    button#searchBtn:hover { background: #2a4a7f; }
+    button#searchBtn:active { background: #162840; }
+
+    .status {
+      padding: 0.6rem 2rem;
+      font-size: 0.85rem;
+      color: #64748b;
+      min-height: 2rem;
+    }
+
+    .status.error { color: #dc2626; }
+
+    #results {
+      padding: 0 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-color: #1d3557;
+    }
+
+    .card .info { display: contents; }
+
+    .card .headline {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1d3557;
+    }
+
+    .card .filename {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    .card .field {
+      font-size: 0.85rem;
+      color: #374151;
+    }
+
+    .card .field span {
+      color: #94a3b8;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 0.3rem;
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #94a3b8;
+      padding: 3rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>MHS Photo Search</header>
+
+<!-- ── Network configuration ──────────────────────────────────────────────
+     Solr URL : point to C1's IP and port (Solr must allow remote connections
+                and have CORS enabled — see setup notes below).
+     Path rewrite : Solr stores the directory as it appears on C1. If C2
+                mounts the share at a different path, enter the C1 prefix to
+                replace and what to replace it with on C2.
+                Leave both path fields blank if the paths are identical.
+  ──────────────────────────────────────────────────────────────────────── -->
+<div class="config-bar">
+  <label for="cfgSolr">Solr URL</label>
+  <input type="text" id="cfgSolr"
+         value="http://192.168.1.X:8983/solr/mhs_photos/select"
+         placeholder="http://C1_IP:8983/solr/mhs_photos/select" />
+  <button type="button" id="localBtn"
+          style="padding:0.35rem 0.75rem;font-size:0.8rem;background:#475569;color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;"
+          onclick="document.getElementById('cfgSolr').value='http://localhost:8983/solr/mhs_photos/select'">
+    Use localhost
+  </button>
+
+  <label for="cfgFrom">C1 path prefix</label>
+  <input type="text" id="cfgFrom"
+         placeholder="/path/on/server"
+         style="min-width:140px;flex:0.6;" />
+
+  <label for="cfgTo">C2 mount path</label>
+  <input type="text" id="cfgTo"
+         placeholder="/Volumes/share  or  Z:\"
+         style="min-width:140px;flex:0.6;" />
+</div>
+<div class="config-hint">
+  Open this file directly in the browser (File › Open) — do <strong>not</strong> serve it over HTTP,
+  or <code>file://</code> links will be blocked by the browser.
+</div>
+
+<div class="search-bar">
+  <input type="text" id="query" placeholder="Search subjects, keywords, headlines, artists…" />
+  <div class="limit-group">
+    <label for="limit">Limit</label>
+    <input type="number" id="limit" value="10" min="1" max="500" />
+  </div>
+  <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.9rem;color:#475569;white-space:nowrap;cursor:pointer;">
+    <input type="checkbox" id="publishedOnly" />
+    Published
+  </label>
+  <button id="searchBtn">Search</button>
+</div>
+
+<div class="status" id="status"></div>
+<div id="results"></div>
+
+<script>
+  function solrUrl()   { return document.getElementById("cfgSolr").value.trim(); }
+  function pathFrom()  { return document.getElementById("cfgFrom").value.trim(); }
+  function pathTo()    { return document.getElementById("cfgTo").value.trim();   }
+
+  function buildFilePath(dir, fname) {
+    if (!dir && !fname) return "";
+    let d = dir || "";
+    const from = pathFrom();
+    const to   = pathTo();
+    if (from && d.startsWith(from)) {
+      d = to + d.slice(from.length);
+    }
+    // Normalise slashes for Windows UNC paths (\\server\share → file:////server/share)
+    if (d.startsWith("\\\\")) {
+      return "file:///" + d.replace(/\\/g, "/") + "/" + fname;
+    }
+    return "file://" + d + "/" + fname;
+  }
+
+  async function doSearch() {
+    const raw          = document.getElementById("query").value.trim();
+    const publishedOnly = document.getElementById("publishedOnly").checked;
+    const q            = publishedOnly ? `${raw} +published`.trim() : raw;
+    const rows         = parseInt(document.getElementById("limit").value, 10) || 10;
+    const status       = document.getElementById("status");
+    const results      = document.getElementById("results");
+
+    if (!raw) {
+      status.textContent = "Enter a search term.";
+      status.className   = "status";
+      results.innerHTML  = "";
+      return;
+    }
+
+    const url = solrUrl();
+    if (!url || url.includes("192.168.1.X")) {
+      status.textContent = "Update the Solr URL in the config bar above before searching.";
+      status.className   = "status error";
+      return;
+    }
+
+    status.textContent = "Searching…";
+    status.className   = "status";
+    results.innerHTML  = "";
+
+    const params = new URLSearchParams({
+      q,
+      wt:      "json",
+      rows,
+      defType: "edismax",
+      qf:      "subject keywords headline description",
+      fl:      "id,file_name,directory,subject,keywords,headline,description",
+    });
+
+    try {
+      const resp = await fetch(`${url}?${params}`);
+      if (!resp.ok) throw new Error(`Solr returned ${resp.status}`);
+      const data = await resp.json();
+
+      const docs  = data.response?.docs  ?? [];
+      const total = data.response?.numFound ?? 0;
+
+      status.textContent = `${total.toLocaleString()} result${total !== 1 ? "s" : ""} — showing ${docs.length}`;
+      status.className   = "status";
+
+      if (docs.length === 0) {
+        results.innerHTML = '<p class="no-results">No results found.</p>';
+        return;
+      }
+
+      results.innerHTML = docs.map(doc => {
+        const dir      = Array.isArray(doc.directory) ? doc.directory[0] : (doc.directory ?? "");
+        const fname    = Array.isArray(doc.file_name)  ? doc.file_name[0]  : (doc.file_name  ?? "");
+        const filePath = buildFilePath(dir, fname);
+
+        return `
+        <a class="card" ${filePath ? `href="${esc(filePath)}"` : ""} ${filePath ? 'target="_blank"' : ""}>
+          <div class="info">
+            <div class="headline">${esc(Array.isArray(doc.headline) ? doc.headline[0] : (doc.headline ?? fname ?? doc.id))}</div>
+            <div class="filename">${esc(fname)}${dir ? " · " + esc(dir) : ""}</div>
+            ${doc.subject     ? `<div class="field"><span>Subject</span>${esc(Array.isArray(doc.subject)     ? doc.subject[0]          : doc.subject)}</div>`          : ""}
+            ${doc.keywords    ? `<div class="field"><span>Keywords</span>${esc(Array.isArray(doc.keywords)   ? doc.keywords.join(", ") : doc.keywords)}</div>`         : ""}
+            ${doc.description ? `<div class="field"><span>Description</span>${esc(Array.isArray(doc.description) ? doc.description[0]  : doc.description)}</div>`     : ""}
+          </div>
+        </a>`;
+      }).join("");
+
+    } catch (err) {
+      status.textContent = `Error: ${err.message}`;
+      status.className   = "status error";
+    }
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  document.getElementById("searchBtn").addEventListener("click", doSearch);
+  document.getElementById("query").addEventListener("keydown", e => {
+    if (e.key === "Enter") doSearch();
+  });
+</script>
+
+<!--
+════════════════════════════════════════════════════════════════
+  SETUP NOTES — C1 (server)
+════════════════════════════════════════════════════════════════
+
+  1. Start Solr bound to the network interface (not just localhost):
+       bin/solr start -h 0.0.0.0
+     Or edit solr.in.sh / solr.in.cmd and set:
+       SOLR_HOST=0.0.0.0
+
+  2. Enable CORS so the browser on C2 can query Solr.
+     Edit server/solr-webapp/webapp/WEB-INF/web.xml and add inside <web-app>:
+
+     <filter>
+       <filter-name>cross-origin</filter-name>
+       <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+       <init-param><param-name>allowedOrigins</param-name><param-value>*</param-value></init-param>
+       <init-param><param-name>allowedMethods</param-name><param-value>GET,POST,OPTIONS,HEAD</param-value></init-param>
+       <init-param><param-name>allowedHeaders</param-name><param-value>*</param-value></init-param>
+     </filter>
+     <filter-mapping>
+       <filter-name>cross-origin</filter-name>
+       <url-pattern>/*</url-pattern>
+     </filter-mapping>
+
+     Then restart Solr.
+
+  3. Make sure the photos folder is shared on the network (SMB recommended
+     for cross-platform). Note the exact path prefix that Solr has stored
+     for the directory field — that goes in "C1 path prefix" above.
+
+════════════════════════════════════════════════════════════════
+  SETUP NOTES — C2 (client)
+════════════════════════════════════════════════════════════════
+
+  1. Mount the shared folder from C1.
+       macOS  : Finder › Go › Connect to Server › smb://C1_IP/sharename
+                Files appear at /Volumes/<sharename>
+       Windows: Map network drive (e.g. Z:\) › \\C1_IP\sharename
+
+  2. Open this HTML file directly in the browser (File › Open File).
+     Do NOT serve it via a local web server — browsers block file:// links
+     from HTTP-served pages.
+
+  3. Fill in the config bar:
+       Solr URL      → http://<C1_IP>:8983/solr/mhs_photos/select
+       C1 path prefix → the directory prefix stored in Solr (e.g. /Users/kale/Desktop/mhs)
+       C2 mount path  → where you mounted the share   (e.g. /Volumes/mhs  or  Z:\)
+════════════════════════════════════════════════════════════════
+-->
+
+</body>
+</html>
