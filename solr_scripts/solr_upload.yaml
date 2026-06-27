@@ -1,4 +1,4 @@
-metadata_directory: /Users/kale/Desktop/mhs/test_metadata_json
+metadata_directory: /Users/gardness/Coding/mhs/mhs/test_metadata_json
 
 solr_url: http://localhost:8983/solr
 solr_collection: mhs_photos
