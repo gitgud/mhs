@@ -8,7 +8,7 @@ solr_collection: mhs_photos
 # Blank = upload the full directory as-is.
 # e.g. directory_strip_prefix: asd
 #      "asd/qwe/file1.tiff" -> "qwe/file1.tiff"
-directory_strip_prefix:  /home/c-3/Desktop/mhs/test_metadata_json/
+directory_strip_prefix:  /Users/kale/Desktop/mhs/original_test_files
 
 # If true, delete ALL documents currently in the collection before uploading.
 clear_before_upload: true
