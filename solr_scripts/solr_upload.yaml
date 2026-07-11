@@ -1,8 +1,17 @@
 metadata_directory: /Users/gardness/Coding/mhs/mhs/test_metadata_json
 
-#solr_url: http://:8983/solr
+#solr_url: http://192.168.0.105:8983/solr/mhs_photos/select/
 solr_url: http://192.168.0.105:8983/solr/
 solr_collection: mhs_photos
+
+# Leading path components to strip from the "directory" field before upload.
+# Blank = upload the full directory as-is.
+# e.g. directory_strip_prefix: asd
+#      "asd/qwe/file1.tiff" -> "qwe/file1.tiff"
+directory_strip_prefix:
+
+# If true, delete ALL documents currently in the collection before uploading.
+clear_before_upload: false
 
 batch_size: 50   # documents per POST request
 workers: 4       # parallel upload threads

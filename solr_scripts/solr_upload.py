@@ -18,6 +18,8 @@ SOLR_URL = _CONFIG["solr_url"].rstrip("/")
 SOLR_COLLECTION = _CONFIG["solr_collection"]
 BATCH_SIZE = int(_CONFIG.get("batch_size", 50))
 WORKERS = int(_CONFIG.get("workers", min(4, os.cpu_count() or 2)))
+DIRECTORY_STRIP_PREFIX = _CONFIG.get("directory_strip_prefix") or ""
+CLEAR_BEFORE_UPLOAD = bool(_CONFIG.get("clear_before_upload", False))
 
 
 def _group(record, *keys):
@@ -29,12 +31,24 @@ def _group(record, *keys):
     return ""
 
 
+def strip_prefix_components(directory, prefix):
+    """Strip leading path components of `directory` that match `prefix`, if present."""
+    if not directory or not prefix:
+        return directory
+    dir_parts = [p for p in directory.replace("\\", "/").split("/") if p]
+    prefix_parts = [p for p in prefix.replace("\\", "/").split("/") if p]
+    if prefix_parts and dir_parts[:len(prefix_parts)] == prefix_parts:
+        return "/".join(dir_parts[len(prefix_parts):])
+    return directory
+
+
 def json_to_solr_doc(filepath, record):
     filename = filepath.stem.removesuffix("-Metadata")
+    directory = strip_prefix_components(_group(record, ("System", "Directory")), DIRECTORY_STRIP_PREFIX)
     return {
         "id": filename,
         "file_name": _group(record, ("System", "FileName")),
-        "directory": _group(record, ("System", "Directory")),
+        "directory": directory,
         "subject": _group(record, ("XMP-dc", "Subject")),
         "keywords": _group(record, ("IPTC", "Keywords"), ("IPTC2", "Keywords"), ("XMP-iptcCore", "Keywords")),
         "headline": _group(record, ("IPTC", "Headline"), ("IPTC2", "Headline")),
@@ -62,6 +76,12 @@ def commit():
     requests.post(url, json={"commit": {}}, timeout=30).raise_for_status()
 
 
+def delete_all():
+    url = f"{SOLR_URL}/{SOLR_COLLECTION}/update"
+    requests.post(url, json={"delete": {"query": "*:*"}}, timeout=30).raise_for_status()
+    commit()
+
+
 def prompt_dir(label, default):
     val = input(f"{label} [{default}]: ").strip()
     return Path(val) if val else Path(default)
@@ -72,12 +92,19 @@ def main():
 
     print(f"\nMetadata : {metadata_dir.resolve()}")
     print(f"Solr     : {SOLR_URL}/{SOLR_COLLECTION}")
+    if CLEAR_BEFORE_UPLOAD:
+        print(f"WARNING  : clear_before_upload is set — ALL documents in '{SOLR_COLLECTION}' will be deleted first.")
     print()
 
     answer = input("Continue? [y/N]: ").strip().lower()
     if answer not in ("y", "yes"):
         print("Aborted.")
         return
+
+    if CLEAR_BEFORE_UPLOAD:
+        print(f"Deleting all documents in '{SOLR_COLLECTION}'...")
+        delete_all()
+        print("Collection cleared.")
 
     all_files = sorted(metadata_dir.rglob("*-Metadata.json"))
     if not all_files:

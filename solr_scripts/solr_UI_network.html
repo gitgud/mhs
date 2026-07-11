@@ -219,7 +219,7 @@
 
   <label for="cfgTo">C2 mount path</label>
   <input type="text" id="cfgTo"
-         placeholder="/Volumes/share  or  Z:\"
+         placeholder="/Volumes/share, Z:\, or smb://host/share"
          style="min-width:140px;flex:0.6;" />
 </div>
 <div class="config-hint">
@@ -255,6 +255,10 @@
     const to   = pathTo();
     if (from && d.startsWith(from)) {
       d = to + d.slice(from.length);
+    }
+    // Already a full URL (e.g. smb://server/share/path) — use as-is, no file:// prefix.
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(d)) {
+      return d.replace(/\/+$/, "") + "/" + fname;
     }
     // Normalise slashes for Windows UNC paths (\\server\share → file:////server/share)
     if (d.startsWith("\\\\")) {
