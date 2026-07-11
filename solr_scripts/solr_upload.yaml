@@ -1,4 +1,4 @@
-metadata_directory: /Users/gardness/Coding/mhs/mhs/test_metadata_json
+metadata_directory: ~/Desktop/mhs/test_metadata_json/
 
 #solr_url: http://192.168.0.105:8983/solr/mhs_photos/select/
 solr_url: http://192.168.0.105:8983/solr/
@@ -8,7 +8,7 @@ solr_collection: mhs_photos
 # Blank = upload the full directory as-is.
 # e.g. directory_strip_prefix: asd
 #      "asd/qwe/file1.tiff" -> "qwe/file1.tiff"
-directory_strip_prefix:
+directory_strip_prefix:  ~/Desktop/mhs/test_metadata_json/
 
 # If true, delete ALL documents currently in the collection before uploading.
 clear_before_upload: false
