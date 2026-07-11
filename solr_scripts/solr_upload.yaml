@@ -11,7 +11,7 @@ solr_collection: mhs_photos
 directory_strip_prefix:  /home/c-3/Desktop/mhs/test_metadata_json/
 
 # If true, delete ALL documents currently in the collection before uploading.
-clear_before_upload: false
+clear_before_upload: true
 
 batch_size: 50   # documents per POST request
 workers: 4       # parallel upload threads
