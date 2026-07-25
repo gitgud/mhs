@@ -1,7 +1,8 @@
 metadata_directory: /Users/kale/Desktop/mhs/test_metadata_json
 
 #solr_url: http://192.168.0.105:8983/solr/mhs_photos/select/
-solr_url: http://192.168.0.105:8983/solr/
+#solr_url: http://192.168.0.105:8983/solr/
+solr_url: http://0.0.0.0:8983/solr/
 solr_collection: mhs_photos
 
 # Leading path components to strip from the "directory" field before upload.
