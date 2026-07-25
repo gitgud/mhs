@@ -194,32 +194,35 @@
 <header>MHS Photo Search</header>
 
 <!-- ── Network configuration ──────────────────────────────────────────────
-     Solr URL : point to C1's IP and port (Solr must allow remote connections
-                and have CORS enabled — see setup notes below).
-     Path rewrite : Solr stores the directory as it appears on C1. If C2
-                mounts the share at a different path, enter the C1 prefix to
-                replace and what to replace it with on C2.
-                Leave both path fields blank if the paths are identical.
+     Solr URL     : point to the server's IP and port (Solr must allow
+                remote connections and have CORS enabled — see setup
+                notes below).
+     Network drive : the name of the mounted network share on this
+                machine (e.g. "test" → /Volumes/test on macOS). Can also
+                be a full path, a Windows drive letter (Z:\), a UNC path
+                (\\server\share), or an smb://... URL.
   ──────────────────────────────────────────────────────────────────────── -->
 <div class="config-bar">
   <label for="cfgSolr">Solr URL</label>
+  <select id="solrPreset"
+          style="padding:0.35rem 0.5rem;font-size:0.85rem;border:1px solid #cbd5e1;border-radius:5px;"
+          onchange="if(this.value) document.getElementById('cfgSolr').value=this.value">
+    <option value="http://192.168.0.130:8983/solr/mhs_photos/select">192.168.0.130</option>
+    <option value="http://192.168.0.105:8983/solr/mhs_photos/select">192.168.0.105</option>
+  </select>
   <input type="text" id="cfgSolr"
-         value="http://192.168.1.X:8983/solr/mhs_photos/select"
-         placeholder="http://C1_IP:8983/solr/mhs_photos/select" />
+         value="http://192.168.0.130:8983/solr/mhs_photos/select"
+         placeholder="http://server_IP:8983/solr/mhs_photos/select" />
   <button type="button" id="localBtn"
           style="padding:0.35rem 0.75rem;font-size:0.8rem;background:#475569;color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;"
           onclick="document.getElementById('cfgSolr').value='http://localhost:8983/solr/mhs_photos/select'">
     Use localhost
   </button>
 
-  <label for="cfgFrom">C1 path prefix</label>
-  <input type="text" id="cfgFrom"
-         placeholder="/path/on/server"
-         style="min-width:140px;flex:0.6;" />
-
-  <label for="cfgTo">C2 mount path</label>
-  <input type="text" id="cfgTo"
-         placeholder="/Volumes/share, Z:\, or smb://host/share"
+  <label for="cfgDrive">Network drive</label>
+  <input type="text" id="cfgDrive"
+         value="Public/davidtest"
+         placeholder="Public/davidtest"
          style="min-width:140px;flex:0.6;" />
 </div>
 <div class="config-hint">
@@ -244,27 +247,34 @@
 <div id="results"></div>
 
 <script>
-  function solrUrl()   { return document.getElementById("cfgSolr").value.trim(); }
-  function pathFrom()  { return document.getElementById("cfgFrom").value.trim(); }
-  function pathTo()    { return document.getElementById("cfgTo").value.trim();   }
+  function solrUrl()     { return document.getElementById("cfgSolr").value.trim();  }
+  function networkDrive(){ return document.getElementById("cfgDrive").value.trim(); }
 
   function buildFilePath(dir, fname) {
-    if (!dir && !fname) return "";
-    let d = dir || "";
-    const from = pathFrom();
-    const to   = pathTo();
-    if (from && d.startsWith(from)) {
-      d = to + d.slice(from.length);
-    }
+    if (!fname) return "";
+    let drive = networkDrive();
+    if (!drive) return "";
+
+    const dirPart = (dir || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+    const relPath = [dirPart, fname].filter(Boolean).join("/");
+
     // Already a full URL (e.g. smb://server/share/path) — use as-is, no file:// prefix.
-    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(d)) {
-      return d.replace(/\/+$/, "") + "/" + fname;
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(drive)) {
+      return drive.replace(/\/+$/, "") + "/" + relPath;
     }
-    // Normalise slashes for Windows UNC paths (\\server\share → file:////server/share)
-    if (d.startsWith("\\\\")) {
-      return "file:///" + d.replace(/\\/g, "/") + "/" + fname;
+    // Windows UNC path (\\server\share → file:////server/share)
+    if (drive.startsWith("\\\\")) {
+      return "file:///" + drive.replace(/\\/g, "/") + "/" + relPath;
     }
-    return "file://" + d + "/" + fname;
+    // Windows drive letter (Z: or Z:\ → file:///Z:/...)
+    if (/^[a-zA-Z]:\\?$/.test(drive)) {
+      return "file:///" + drive.replace(/\\/g, "") + "/" + relPath;
+    }
+    // Bare share/volume name — assume a mounted macOS volume under /Volumes.
+    if (!drive.startsWith("/")) {
+      drive = "/Volumes/" + drive;
+    }
+    return "file://" + drive.replace(/\/+$/, "") + "/" + relPath;
   }
 
   async function doSearch() {
@@ -383,8 +393,10 @@
      Then restart Solr.
 
   3. Make sure the photos folder is shared on the network (SMB recommended
-     for cross-platform). Note the exact path prefix that Solr has stored
-     for the directory field — that goes in "C1 path prefix" above.
+     for cross-platform). Set "directory_strip_prefix" in solr_upload.yaml
+     to the local path prefix used during upload, so the "directory" field
+     stored in Solr is relative (e.g. "qwe/file1.tiff" instead of an
+     absolute path baked in for one specific machine).
 
 ════════════════════════════════════════════════════════════════
   SETUP NOTES — C2 (client)
@@ -401,8 +413,8 @@
 
   3. Fill in the config bar:
        Solr URL      → http://<C1_IP>:8983/solr/mhs_photos/select
-       C1 path prefix → the directory prefix stored in Solr (e.g. /Users/kale/Desktop/mhs)
-       C2 mount path  → where you mounted the share   (e.g. /Volumes/mhs  or  Z:\)
+       Network drive → the mounted share name (e.g. "test" → /Volumes/test),
+                        or a full path / Z:\ / \\server\share / smb://host/share
 ════════════════════════════════════════════════════════════════
 -->
 
