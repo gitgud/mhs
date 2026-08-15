@@ -1,0 +1,15 @@
+# Solr connection. The browser client no longer talks to Solr directly —
+# it only talks to this Flask server, which proxies search requests and
+# serves image files.
+solr_url: http://localhost:8983/solr
+solr_collection: mhs_photos
+
+# Root directory that the "directory" field stored in Solr is relative to
+# (see directory_strip_prefix in solr_scripts/solr_upload.yaml). This must
+# be a path that exists on the machine running this server — e.g. the
+# mounted network share, or the original photo folder itself.
+photo_root: /mnt/qnap-ts-464/mhs_solr/original_test_files
+
+# Address/port this Flask server listens on.
+host: 0.0.0.0
+port: 5001

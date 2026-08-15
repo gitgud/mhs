@@ -193,37 +193,29 @@
 
 <header>MHS Photo Search</header>
 
-<!-- ── Network configuration ──────────────────────────────────────────────
-     Solr URL     : point to the server's IP and port (Solr must allow
-                remote connections and have CORS enabled — see setup
-                notes below).
-     Network drive : the name of the mounted network share on this
-                machine (e.g. "test" → /Volumes/test on macOS). Can also
-                be a full path, a Windows drive letter (Z:\), a UNC path
-                (\\server\share), or an smb://... URL.
+<!-- ── Web server configuration ────────────────────────────────────────────
+     Web server URL : point to the Flask server in /webserver (it proxies
+                Solr searches and serves the actual image files — the
+                browser no longer talks to Solr or a mounted network
+                drive directly). See webserver/config.yaml on that
+                machine for its Solr connection and photo root.
   ──────────────────────────────────────────────────────────────────────── -->
 <div class="config-bar">
-  <label for="cfgSolr">Solr URL</label>
-  <select id="solrPreset"
+  <label for="cfgServer">Web server URL</label>
+  <select id="serverPreset"
           style="padding:0.35rem 0.5rem;font-size:0.85rem;border:1px solid #cbd5e1;border-radius:5px;"
-          onchange="if(this.value) document.getElementById('cfgSolr').value=this.value">
-    <option value="http://192.168.0.130:8983/solr/mhs_photos/select">192.168.0.130</option>
-    <option value="http://192.168.0.105:8983/solr/mhs_photos/select">192.168.0.105</option>
+          onchange="if(this.value) document.getElementById('cfgServer').value=this.value">
+    <option value="http://192.168.0.130:5001">Main Office (192.168.0.130)</option>
+    <option value="http://192.168.0.105:5001">Back Room (192.168.0.105)</option>
   </select>
-  <input type="text" id="cfgSolr"
-         value="http://192.168.0.130:8983/solr/mhs_photos/select"
-         placeholder="http://server_IP:8983/solr/mhs_photos/select" />
+  <input type="text" id="cfgServer"
+         value="http://192.168.0.130:5001"
+         placeholder="http://server_IP:5001" />
   <button type="button" id="localBtn"
           style="padding:0.35rem 0.75rem;font-size:0.8rem;background:#475569;color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;"
-          onclick="document.getElementById('cfgSolr').value='http://localhost:8983/solr/mhs_photos/select'">
+          onclick="document.getElementById('cfgServer').value='http://localhost:5001'">
     Use localhost
   </button>
-
-  <label for="cfgDrive">Network drive</label>
-  <input type="text" id="cfgDrive"
-         value="Public/davidtest"
-         placeholder="Public/davidtest"
-         style="min-width:140px;flex:0.6;" />
 </div>
 <div class="config-hint">
   Open this file directly in the browser (File › Open) — do <strong>not</strong> serve it over HTTP,
@@ -247,40 +239,11 @@
 <div id="results"></div>
 
 <script>
-  function solrUrl()     { return document.getElementById("cfgSolr").value.trim();  }
-  function networkDrive(){ return document.getElementById("cfgDrive").value.trim(); }
-
-  function buildFilePath(dir, fname) {
-    if (!fname) return "";
-    let drive = networkDrive();
-    if (!drive) return "";
-
-    const dirPart = (dir || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
-    const relPath = [dirPart, fname].filter(Boolean).join("/");
-
-    // Already a full URL (e.g. smb://server/share/path) — use as-is, no file:// prefix.
-    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(drive)) {
-      return drive.replace(/\/+$/, "") + "/" + relPath;
-    }
-    // Windows UNC path (\\server\share → file:////server/share)
-    if (drive.startsWith("\\\\")) {
-      return "file:///" + drive.replace(/\\/g, "/") + "/" + relPath;
-    }
-    // Windows drive letter (Z: or Z:\ → file:///Z:/...)
-    if (/^[a-zA-Z]:\\?$/.test(drive)) {
-      return "file:///" + drive.replace(/\\/g, "") + "/" + relPath;
-    }
-    // Bare share/volume name — assume a mounted macOS volume under /Volumes.
-    if (!drive.startsWith("/")) {
-      drive = "/Volumes/" + drive;
-    }
-    return "file://" + drive.replace(/\/+$/, "") + "/" + relPath;
-  }
+  function serverUrl() { return document.getElementById("cfgServer").value.trim().replace(/\/+$/, ""); }
 
   async function doSearch() {
     const raw          = document.getElementById("query").value.trim();
     const publishedOnly = document.getElementById("publishedOnly").checked;
-    const q            = publishedOnly ? `${raw} +published`.trim() : raw;
     const rows         = parseInt(document.getElementById("limit").value, 10) || 10;
     const status       = document.getElementById("status");
     const results      = document.getElementById("results");
@@ -292,9 +255,9 @@
       return;
     }
 
-    const url = solrUrl();
-    if (!url || url.includes("192.168.1.X")) {
-      status.textContent = "Update the Solr URL in the config bar above before searching.";
+    const base = serverUrl();
+    if (!base) {
+      status.textContent = "Update the web server URL in the config bar above before searching.";
       status.className   = "status error";
       return;
     }
@@ -304,21 +267,18 @@
     results.innerHTML  = "";
 
     const params = new URLSearchParams({
-      q,
-      wt:      "json",
+      q:         raw,
       rows,
-      defType: "edismax",
-      qf:      "subject keywords headline description",
-      fl:      "id,file_name,directory,subject,keywords,headline,description",
+      published: publishedOnly,
     });
 
     try {
-      const resp = await fetch(`${url}?${params}`);
-      if (!resp.ok) throw new Error(`Solr returned ${resp.status}`);
+      const resp = await fetch(`${base}/api/search?${params}`);
       const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || `Server returned ${resp.status}`);
 
-      const docs  = data.response?.docs  ?? [];
-      const total = data.response?.numFound ?? 0;
+      const docs  = data.docs     ?? [];
+      const total = data.numFound ?? 0;
 
       status.textContent = `${total.toLocaleString()} result${total !== 1 ? "s" : ""} — showing ${docs.length}`;
       status.className   = "status";
@@ -331,10 +291,10 @@
       results.innerHTML = docs.map(doc => {
         const dir      = Array.isArray(doc.directory) ? doc.directory[0] : (doc.directory ?? "");
         const fname    = Array.isArray(doc.file_name)  ? doc.file_name[0]  : (doc.file_name  ?? "");
-        const filePath = buildFilePath(dir, fname);
+        const imageUrl = `${base}/api/image/${encodeURIComponent(doc.id)}`;
 
         return `
-        <a class="card" ${filePath ? `href="${esc(filePath)}"` : ""} ${filePath ? 'target="_blank"' : ""}>
+        <a class="card" href="${esc(imageUrl)}" target="_blank">
           <div class="info">
             <div class="headline">${esc(Array.isArray(doc.headline) ? doc.headline[0] : (doc.headline ?? fname ?? doc.id))}</div>
             <div class="filename">${esc(fname)}${dir ? " · " + esc(dir) : ""}</div>
@@ -370,51 +330,40 @@
   SETUP NOTES — C1 (server)
 ════════════════════════════════════════════════════════════════
 
-  1. Start Solr bound to the network interface (not just localhost):
-       bin/solr start -h 0.0.0.0
-     Or edit solr.in.sh / solr.in.cmd and set:
-       SOLR_HOST=0.0.0.0
+  1. Start Solr (localhost is fine now — only the Flask server on this
+     same machine talks to it directly):
+       bin/solr start
 
-  2. Enable CORS so the browser on C2 can query Solr.
-     Edit server/solr-webapp/webapp/WEB-INF/web.xml and add inside <web-app>:
+  2. Make sure the photos folder is reachable from this machine (either
+     the files live here, or the network share is mounted). Set
+     "directory_strip_prefix" in solr_scripts/solr_upload.yaml to the local
+     path prefix used during upload, so the "directory" field stored in
+     Solr is relative (e.g. "qwe/file1.tiff" instead of an absolute path
+     baked in for one specific machine).
 
-     <filter>
-       <filter-name>cross-origin</filter-name>
-       <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
-       <init-param><param-name>allowedOrigins</param-name><param-value>*</param-value></init-param>
-       <init-param><param-name>allowedMethods</param-name><param-value>GET,POST,OPTIONS,HEAD</param-value></init-param>
-       <init-param><param-name>allowedHeaders</param-name><param-value>*</param-value></init-param>
-     </filter>
-     <filter-mapping>
-       <filter-name>cross-origin</filter-name>
-       <url-pattern>/*</url-pattern>
-     </filter-mapping>
-
-     Then restart Solr.
-
-  3. Make sure the photos folder is shared on the network (SMB recommended
-     for cross-platform). Set "directory_strip_prefix" in solr_upload.yaml
-     to the local path prefix used during upload, so the "directory" field
-     stored in Solr is relative (e.g. "qwe/file1.tiff" instead of an
-     absolute path baked in for one specific machine).
+  3. Configure and run the Flask server in /webserver:
+       cd webserver
+       pip3 install -r requirements.txt
+       # edit config.yaml: solr_url, solr_collection, photo_root, port
+       python3 app.py
+     It proxies searches to Solr (GET /api/search) and serves the actual
+     image bytes (GET /api/image/<id>), so C2 never needs Solr CORS,
+     file:// links, or a mounted drive of its own.
 
 ════════════════════════════════════════════════════════════════
   SETUP NOTES — C2 (client)
 ════════════════════════════════════════════════════════════════
 
-  1. Mount the shared folder from C1.
-       macOS  : Finder › Go › Connect to Server › smb://C1_IP/sharename
-                Files appear at /Volumes/<sharename>
-       Windows: Map network drive (e.g. Z:\) › \\C1_IP\sharename
-
-  2. Open this HTML file directly in the browser (File › Open File).
+  1. Open this HTML file directly in the browser (File › Open File).
      Do NOT serve it via a local web server — browsers block file:// links
      from HTTP-served pages.
 
-  3. Fill in the config bar:
-       Solr URL      → http://<C1_IP>:8983/solr/mhs_photos/select
-       Network drive → the mounted share name (e.g. "test" → /Volumes/test),
-                        or a full path / Z:\ / \\server\share / smb://host/share
+  2. Fill in the config bar:
+       Web server URL → http://<C1_IP>:5001  (the Flask server from C1
+                          setup step 3 above)
+
+  3. Search, then click a result — it opens the image via the Flask
+     server's /api/image/<id> endpoint in a new tab.
 ════════════════════════════════════════════════════════════════
 -->
 
